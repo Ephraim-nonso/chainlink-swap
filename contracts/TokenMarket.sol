@@ -8,8 +8,9 @@ contract TokenMarket {
     PriceConverter private p;
     IERC20 private tokenA;
     IERC20 private tokenB;
+    uint256 public id;
 
-    struct SwapOrder {
+    struct SwapRecord {
         address fromToken;
         bool done;
         address toToken;
@@ -20,25 +21,54 @@ contract TokenMarket {
         uint256 fromTokenAmount;
     }
 
-    mapping(uint256 => SwapOrder) private swaps;
-
-    function getPriceExchange(
-        address _base,
-        address _quote,
-        uint8 _decimals
-    ) external view returns (int256) {
-        int256 price = p.getDerivedPrice(_base, _quote, _decimals);
-        return price;
-    }
+    mapping(uint256 => SwapRecord) private swaps;
 
     function swap(
         address _tokenA,
         address _tokenB,
         uint256 _amountToSwap,
-        uint256 _amountToReceive
-    ) external returns (bool) {
-        tokenA = IERC20(_tokenA);
-        tokenA = IERC20(_tokenB);
+        address _base,
+        addres _quote,
+        uint9 _decimals
+    ) external returns (bool success) {
+        uint256 localId = id;
         int256 marketValue = getPriceExchange(_base, _quote, _decimals);
+        SwapRecord storage sr = swaps[localId];
+        sr.fromToken = _tokenA;
+        sr.toToken = _tokenB;
+        sr.decimals = sr.decimals;
+        sr.base = _base;
+        sr.quote = _quote;
+        sr.fromTokenAmount = _amountToSwap;
+        sr.toTokenAmount = _amountToSwap * marketValue;
+        sr.done = true;
+        success = s.done;
+        //measures to increase the index.
+        localId = localId + 1;
+        id = localId;
+    }
+
+    //Function to get the swap price of tokens.
+    function getPriceExchange(
+        address base_,
+        address quote_,
+        uint8 decimals_
+    ) internal returns (int256) {
+        int256 price = p.getDerivedPrice(base_, quote_, decimals_);
+        return price;
+    }
+
+    // Exchange function.
+    function exchange(
+        address _fromSwap,
+        address _toSwap,
+        uint256 _amount
+    ) external returns (uint256) {
+        // uint256 localId = id;
+        tokenA = IERC20(_fromSwap);
+        tokenB = IERC20(_toSwap);
+        _fromSwap.approve(address(this), _amount);
+        _sr.fromToken.transfer(msg.sender, _amount);
+        _sr.fromToken = _sr.fromToken - _amount;
     }
 }
