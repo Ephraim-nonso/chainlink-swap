@@ -13,13 +13,14 @@ contract TokenMarket {
         address fromToken;
         bool done;
         address toToken;
-        uint256 toTokenAmount;
-        uint256 fromTokenAmount;
         address base;
         address quote;
+        uint8 decimals;
+        uint256 toTokenAmount;
+        uint256 fromTokenAmount;
     }
 
-    mapping(uint256 => SwapOrder) swaps;
+    mapping(uint256 => SwapOrder) private swaps;
 
     function getPriceExchange(
         address _base,
