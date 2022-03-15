@@ -9,6 +9,18 @@ contract TokenMarket {
     IERC20 private tokenA;
     IERC20 private tokenB;
 
+    struct SwapOrder {
+        address fromToken;
+        bool done;
+        address toToken;
+        uint256 toTokenAmount;
+        uint256 fromTokenAmount;
+        address base;
+        address quote;
+    }
+
+    mapping(uint256 => SwapOrder) swaps;
+
     function getPriceExchange(
         address _base,
         address _quote,
@@ -21,9 +33,11 @@ contract TokenMarket {
     function swap(
         address _tokenA,
         address _tokenB,
-        uint256 decimal
+        uint256 _amountToSwap,
+        uint256 _amountToReceive
     ) external returns (bool) {
         tokenA = IERC20(_tokenA);
         tokenA = IERC20(_tokenB);
+        int256 marketValue = getPriceExchange(_base, _quote, _decimals);
     }
 }
