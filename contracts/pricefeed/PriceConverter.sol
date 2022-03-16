@@ -37,13 +37,4 @@ contract PriceConverter {
         }
         return _price;
     }
-
-    // function swap(
-    //     address _base,
-    //     address _quote,
-    //     int256 _amount
-    // ) external view returns (int256) {
-    //     int256 market = getDerivedPrice(_base, _quote);
-    //     return _amount * market;
-    // }
 }
