@@ -3,36 +3,24 @@ pragma solidity 0.8.4;
 
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-/**
- * THIS EXAMPLE USES UN-AUDITED CODE.
- * Network: Kovan
- * Base: BTC/USD
- * Base Address: 0x6135b13325bfC4B00278B4abC5e20bbce2D6580e
- * Quote: EUR/USD
- * Quote Address: 0x0c15Ab9A0DB086e062194c273CC79f41597Bbf13
- * Decimals: 8
- */
-
 contract PriceConverter {
-    function getDerivedPrice(
-        address _base,
-        address _quote,
-        uint8 _decimals
-    ) public view returns (int256) {
-        require(
-            _decimals > uint8(0) && _decimals <= uint8(18),
-            "Invalid _decimals"
-        );
-        int256 decimals = int256(10**uint256(_decimals));
+    function getDerivedPrice(address _base, address _quote)
+        public
+        view
+        returns (int256)
+    {
+        uint8 dec = AggregatorV3Interface(_base).decimals();
+        require(dec > uint8(0) && dec <= uint8(18), "Invalid _decimals");
+        int256 decimals = int256(10**uint256(dec));
         (, int256 basePrice, , , ) = AggregatorV3Interface(_base)
             .latestRoundData();
         uint8 baseDecimals = AggregatorV3Interface(_base).decimals();
-        basePrice = scalePrice(basePrice, baseDecimals, _decimals);
+        basePrice = scalePrice(basePrice, baseDecimals, dec);
 
         (, int256 quotePrice, , , ) = AggregatorV3Interface(_quote)
             .latestRoundData();
         uint8 quoteDecimals = AggregatorV3Interface(_quote).decimals();
-        quotePrice = scalePrice(quotePrice, quoteDecimals, _decimals);
+        quotePrice = scalePrice(quotePrice, quoteDecimals, dec);
 
         return (basePrice * decimals) / quotePrice;
     }
@@ -49,4 +37,13 @@ contract PriceConverter {
         }
         return _price;
     }
+
+    // function swap(
+    //     address _base,
+    //     address _quote,
+    //     int256 _amount
+    // ) external view returns (int256) {
+    //     int256 market = getDerivedPrice(_base, _quote);
+    //     return _amount * market;
+    // }
 }

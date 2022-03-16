@@ -2,73 +2,73 @@
 
 pragma solidity 0.8.4;
 import "./interfaces/IERC20.sol";
-import "./pricefeed/Price.sol";
+import "./pricefeed/PriceConverter.sol";
 
 contract TokenMarket {
     PriceConverter private p;
-    IERC20 private tokenA;
-    IERC20 private tokenB;
+    IERC20 private token;
+    // IERC20 private tokenB;
     uint256 public id;
 
     struct SwapRecord {
-        address fromToken;
+        address baseToken;
         bool done;
-        address toToken;
+        address quoteToken;
         address base;
         address quote;
-        uint8 decimals;
-        uint256 toTokenAmount;
-        uint256 fromTokenAmount;
+        int256 baseTokenAmount;
+        int256 quoteTokenAmount;
     }
 
-    mapping(uint256 => SwapRecord) private swaps;
+    mapping(uint256 => SwapRecord) public swaps;
 
     function swap(
         address _tokenA,
         address _tokenB,
-        uint256 _amountToSwap,
+        int256 _amountToSwap,
         address _base,
-        addres _quote,
-        uint9 _decimals
+        address _quote
     ) external returns (bool success) {
+        // Records the transaction data. by receiving its relevant
+        // information to be stored onchain.
         uint256 localId = id;
-        int256 marketValue = getPriceExchange(_base, _quote, _decimals);
+        int256 marketValue = p.getDerivedPrice(base_, quote_);
         SwapRecord storage sr = swaps[localId];
-        sr.fromToken = _tokenA;
-        sr.toToken = _tokenB;
-        sr.decimals = sr.decimals;
+        sr.baseToken = _tokenA;
+        sr.quoteToken = _tokenB;
         sr.base = _base;
         sr.quote = _quote;
-        sr.fromTokenAmount = _amountToSwap;
-        sr.toTokenAmount = _amountToSwap * marketValue;
+        sr.baseTokenAmount = _amountToSwap;
+        sr.quoteTokenAmount = _amountToSwap * marketValue;
+        sendToContract(_tokenA, sr.baseTokenAmount);
+        sendToClient(_tokenB, sr.quoteTokenAmount);
         sr.done = true;
-        success = s.done;
+        success = sr.done;
         //measures to increase the index.
         localId = localId + 1;
         id = localId;
     }
 
-    //Function to get the swap price of tokens.
-    function getPriceExchange(
-        address base_,
-        address quote_,
-        uint8 decimals_
-    ) internal returns (int256) {
-        int256 price = p.getDerivedPrice(base_, quote_, decimals_);
-        return price;
+    // Exchange functions.
+    // Transfer token into the address.
+    function sendToContract(address _fromToken, uint256 _amt)
+        internal
+        returns (bool)
+    {
+        IERC20(_fromToken).balanceOf(msg.sender) =
+            IERC20(_fromToken).balanceOf(msg.sender) -
+            _amount;
+        return IERC20(_fromToken).transfer(address(this), _amt);
     }
 
-    // Exchange function.
-    function exchange(
-        address _fromSwap,
-        address _toSwap,
-        uint256 _amount
-    ) external returns (uint256) {
-        // uint256 localId = id;
-        tokenA = IERC20(_fromSwap);
-        tokenB = IERC20(_toSwap);
-        _fromSwap.approve(address(this), _amount);
-        _sr.fromToken.transfer(msg.sender, _amount);
-        _sr.fromToken = _sr.fromToken - _amount;
+    // Transfer token into the client.
+    function sendToClient(address _toToken, uint256 _amt)
+        internal
+        returns (bool)
+    {
+        IERC20(_toToken).balanceOf(address(this)) =
+            IERC20(_fromToken).balanceOf(address(this)) -
+            _amount;
+        return IERC20(_fromToken).transfer(msg.sender, _amt);
     }
 }
