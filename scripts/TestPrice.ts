@@ -8,8 +8,8 @@ async function main() {
 
   //Deployed to check the base of BTC/EUR
   const priceDerived = await price.getDerivedPrice(
-    "0x6135b13325bfC4B00278B4abC5e20bbce2D6580e",
-    "0x0c15Ab9A0DB086e062194c273CC79f41597Bbf13"
+    "0x396c5E36DD0a0F5a5D33dae44368D4193f69a1F0",
+    "0xDA5904BdBfB4EF12a3955aEcA103F51dc87c7C39"
   );
   console.log(priceDerived);
 }

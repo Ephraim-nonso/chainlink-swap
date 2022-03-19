@@ -16,8 +16,8 @@ contract TokenMarket {
         address baseToken;
         bool done;
         address quoteToken;
-        address base; 
-        address quote; 
+        address base;
+        address quote;
         uint256 baseTokenAmount;
         uint256 quoteTokenAmount;
     }
@@ -43,7 +43,7 @@ contract TokenMarket {
         sr.base = _base;
         sr.quote = _quote;
         sr.baseTokenAmount = _amountToSwap; // 3
-        sr.quoteTokenAmount = _amountToSwap * uint256(ma rketValue);
+        sr.quoteTokenAmount = _amountToSwap * uint256(marketValue);
         sendToContract(_tokenA, sr.baseTokenAmount);
         sendToClient(_tokenB, sr.quoteTokenAmount);
         //measures to increase the index.
