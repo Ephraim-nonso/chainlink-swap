@@ -1,15 +1,22 @@
 //SPDX-License-Identifier: Unlicensed
 
-pragma solidity 0.8.4;
+pragma solidity ^0.8.4;
 import "./interfaces/IERC20.sol";
 import "./pricefeed/PriceConverter.sol";
 
 contract TokenMarket {
-    PriceConverter private p;
+    // Ensure to get a valid contract after deployment.
+    PriceConverter private p =
+        PriceConverter(0x4bf010f1b9beDA5450a8dD702ED602A104ff65EE);
+
+    // State variables.
     IERC20 private tokenA;
     IERC20 private tokenB;
-    // IERC20 private tokenB;
-    uint256 public id;
+    uint256 private id = 0;
+    address internal base;
+    address internal quote;
+
+    // Event.
     event Record(uint256 tokenAmountIn, uint256 tokenAmountOut);
 
     struct SwapRecord {
@@ -24,25 +31,30 @@ contract TokenMarket {
 
     mapping(uint256 => SwapRecord) public swaps;
 
+    //  check the price of BNB/DAI
+    constructor() {
+        base = 0x14e613AC84a31f709eadbdF89C6CC390fDc9540A;
+        quote = 0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9;
+    }
+
     function swap(
         address _tokenA,
         address _tokenB,
-        uint256 _amountToSwap,
-        address _base,
-        address _quote
+        uint256 _amountToSwap
     ) external returns (bool success, uint256 out) {
+        require(_amountToSwap > 0, "Invalid amount passed.");
         // Records the transaction data. by receiving its relevant
         // information to be stored onchain.
         uint256 localId = id;
-        int256 marketValue = p.getDerivedPrice(_base, _quote);
+        int256 marketValue = p.getDerivedPrice(base, quote);
 
-        // Refrence of the storage.
+        // Reference of the storage.
         SwapRecord storage sr = swaps[localId];
         sr.baseToken = _tokenA;
         sr.quoteToken = _tokenB;
-        sr.base = _base;
-        sr.quote = _quote;
-        sr.baseTokenAmount = _amountToSwap; // 3
+        sr.base = base;
+        sr.quote = quote;
+        sr.baseTokenAmount = _amountToSwap;
         sr.quoteTokenAmount = _amountToSwap * uint256(marketValue);
         sendToContract(_tokenA, sr.baseTokenAmount);
         sendToClient(_tokenB, sr.quoteTokenAmount);
@@ -63,9 +75,11 @@ contract TokenMarket {
         returns (bool)
     {
         tokenA = IERC20(_fromToken);
-        uint256 moneyInAcc = tokenA.balanceOf(msg.sender);
-        moneyInAcc = moneyInAcc - _amt;
-        return tokenA.transfer(address(this), _amt);
+        require(
+            tokenA.balanceOf(msg.sender) > _amt,
+            "Insufficent token from owner"
+        );
+        return tokenA.transferFrom(msg.sender, address(this), _amt);
     }
 
     // Transfer token into the client.
@@ -74,8 +88,14 @@ contract TokenMarket {
         returns (bool)
     {
         tokenB = IERC20(_toToken);
-        uint256 moneyInAcc = tokenB.balanceOf(address(this));
-        moneyInAcc = moneyInAcc - _amt;
+        require(
+            tokenA.transferFrom(msg.sender, address(this), _amt),
+            "Send funds first."
+        );
+        require(
+            tokenB.balanceOf(address(this)) > _amt,
+            "Insufficent token in contract"
+        );
         return tokenB.transfer(msg.sender, _amt);
     }
 }

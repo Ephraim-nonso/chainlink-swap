@@ -1,42 +1,60 @@
 import { Signer } from "ethers";
-import { ethers, network } from "hardhat";
+import { ethers } from "hardhat";
 
-async function token() {
-  const TMarket = await ethers.getContractFactory("TokenMarket");
-  const token = await TMarket.deploy();
+// Holders.
+const BNBHolder = "0x0c2fd5c0d42ac0a29d2ccace37fae71b66cecccd";
+const DAIHolder = "0x8639d7a9521aedf18e5dc6a14c1c5cc1bfbe3ba0";
 
-  await token.deployed();
+// Token contracts.
+const DAIContract = "0x6B175474E89094C44Da98b954EedeAC495271d0F";
+const BNBContract = "0xB8c77482e45F1F44dE1745F52C74426C631bDD52";
 
-  console.log("Token deeployed to this address:", token.address);
+// market contract
+const marketContract = "0x40a42Baf86Fc821f972Ad2aC878729063CeEF403";
 
-  const tokenA: string = "0x0f07d1164aeb85C6b5d8fA1256C26E45140fE40B";
-  const tokenB: string = "0xAD87240465F2a41787B0d8704Fa01B61Bd9eC869";
-  const swapAmt: number = 3000; //DAI to BNB
-  const base: string = "0x777A68032a88E5A84678A77Af2CD65A7b3c0775a";
-  const quote: string = "0x8993ED705cdf5e84D0a3B754b5Ee0e1783fcdF16";
-  const swapFnc = await token.swap(tokenA, tokenB, swapAmt, base, quote);
-
-  console.log(swapFnc);
-
-  // const tr = "0xAD87240465F2a41787B0d8704Fa01B61Bd9eC869";
-  // // Check for the token balance
-  // const IERC = await ethers.getContractAt("IERC20", tr);
-  // const signer: Signer = await ethers.getSigner(
-  //   "0xc0d9caf133325be902e2d6ef12d6f349f6f7249d"
-  // );
-
-  // await network.provider.send("hardhat_setBalance", [
-  //   "0xc0d9caf133325be902e2d6ef12d6f349f6f7249d",
-  //   "0x1000",
-  // ]);
-
-  // const bal = await IERC.balanceOf(
-  //   "0xf278331e5e22da877195f5d4f71642a63405d8a7"
-  // );
-  // console.log(bal);
+async function prank(x: string) {
+  //@ts-ignore
+  await hre.network.provider.request({
+    method: "hardhat_impersonateAccount",
+    params: [x],
+  });
 }
 
-token().catch((error) => {
+async function main() {
+  // @ts-ignore
+  await hre.network.provider.send("hardhat_setBalance", [
+    marketContract,
+    "0x100000000000000000000000",
+  ]);
+
+  // IERC20
+  const con = await ethers.getContractAt("IERC20", BNBContract);
+  const token2 = await ethers.getContractAt("IERC20", DAIContract);
+  const market = await ethers.getContractAt("TokenMarket", marketContract);
+
+  await prank(BNBHolder);
+  const signer = await ethers.getSigner(BNBHolder);
+  // const signer = await ethers.getSigner(DAIHolder);
+
+  const g = await con.connect(signer).balanceOf(market.address);
+  // // await con.connect(signer).transfer(market.address, "36040000");
+  console.log(g);
+  // console.log(await con.balanceOf(market.address));
+  // // console.log(await token2.balanceOf(market.address));
+  // // console.log(await token2.address);
+
+  await con.connect(signer).approve(marketContract, "1000");
+
+  const exchange = await market
+    .connect(signer)
+    .swap(BNBContract, DAIContract, "1000");
+  console.log(exchange);
+
+  console.log(await token2.balanceOf(BNBHolder));
+  console.log(g);
+}
+
+main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
