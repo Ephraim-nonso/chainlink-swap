@@ -56,8 +56,7 @@ contract TokenMarket {
         sr.quote = quote;
         sr.baseTokenAmount = _amountToSwap;
         sr.quoteTokenAmount = _amountToSwap * uint256(marketValue);
-        sendToContract(_tokenA, sr.baseTokenAmount);
-        sendToClient(_tokenA, _tokenB, sr.quoteTokenAmount);
+        sendToClient(_tokenA, sr.baseTokenAmount, _tokenB, sr.quoteTokenAmount);
         //measures to increase the index.
         localId = localId + 1;
         id = localId;
@@ -69,6 +68,25 @@ contract TokenMarket {
     }
 
     // Exchange functions.
+    // Transfer token into the client address.
+    function sendToClient(
+        address _fromToken,
+        uint256 _amtIn,
+        address _toToken,
+        uint256 _amtOut
+    ) internal returns (bool) {
+        tokenB = IERC20(_toToken);
+        require(
+            sendToContract(_fromToken, _amtIn),
+            "Must send to contract first."
+        );
+        require(
+            tokenB.balanceOf(address(this)) > _amtOut,
+            "Insufficent token in contract."
+        );
+        return tokenB.transfer(msg.sender, _amtOut);
+    }
+
     // Transfer token into the address.
     function sendToContract(address _fromToken, uint256 _amt)
         internal
@@ -77,27 +95,8 @@ contract TokenMarket {
         tokenA = IERC20(_fromToken);
         require(
             tokenA.balanceOf(msg.sender) > _amt,
-            "Insufficent token from owner"
+            "Insufficent token from owner."
         );
         return tokenA.transferFrom(msg.sender, address(this), _amt);
-    }
-
-    // Transfer token into the client.
-    function sendToClient(
-        address _fromToken,
-        address _toToken,
-        uint256 _amt
-    ) internal returns (bool) {
-        tokenA = IERC20(_fromToken);
-        tokenB = IERC20(_toToken);
-        require(
-            tokenA.transferFrom(msg.sender, address(this), _amt),
-            "Send funds first."
-        );
-        require(
-            tokenB.balanceOf(address(this)) > _amt,
-            "Insufficent token in contract"
-        );
-        return tokenB.transfer(msg.sender, _amt);
     }
 }
