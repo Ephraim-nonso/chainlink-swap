@@ -57,7 +57,7 @@ contract TokenMarket {
         sr.baseTokenAmount = _amountToSwap;
         sr.quoteTokenAmount = _amountToSwap * uint256(marketValue);
         sendToContract(_tokenA, sr.baseTokenAmount);
-        sendToClient(_tokenB, sr.quoteTokenAmount);
+        sendToClient(_tokenA, _tokenB, sr.quoteTokenAmount);
         //measures to increase the index.
         localId = localId + 1;
         id = localId;
@@ -83,10 +83,12 @@ contract TokenMarket {
     }
 
     // Transfer token into the client.
-    function sendToClient(address _toToken, uint256 _amt)
-        internal
-        returns (bool)
-    {
+    function sendToClient(
+        address _fromToken,
+        address _toToken,
+        uint256 _amt
+    ) internal returns (bool) {
+        tokenA = IERC20(_fromToken);
         tokenB = IERC20(_toToken);
         require(
             tokenA.transferFrom(msg.sender, address(this), _amt),
