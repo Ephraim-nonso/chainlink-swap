@@ -16,4 +16,5 @@ describe("Greeter", function () {
 
     expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
+  it("Check the price of base and quote", async function () {});
 });
