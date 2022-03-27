@@ -18,10 +18,10 @@ contract TokenMarket {
     // Event the records of transaction.
     event Record(uint256 tokenAmountIn, uint256 tokenAmountOut);
 
-    //  check the price of BNB/DAI
+    //  check the price of BNB/SUSHI
     constructor() {
         base = 0x14e613AC84a31f709eadbdF89C6CC390fDc9540A;
-        quote = 0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9;
+        quote = 0xCc70F09A6CC17553b2E31954cD36E4A2d89501f7;
     }
 
     /// @notice Calculates the swap cost and ensure transaction.
